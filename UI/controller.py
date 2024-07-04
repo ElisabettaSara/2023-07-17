@@ -9,44 +9,40 @@ class Controller:
         self._model = model
 
     def fillDD(self):
-        anni = self._model.listYear
-        colori = self._model.listColor
-
-        for a in anni:
+        for a in self._model.getAnno():
             self._view._ddyear.options.append(ft.dropdown.Option(a))
 
-        for c in colori:
+        for c in self._model.getColore():
             self._view._ddcolor.options.append(ft.dropdown.Option(c))
 
+
+
+
+
     def handle_graph(self, e):
-        if self._view._ddyear.value is None:
-            self._view.create_alert("Inserire un anno")
-            return
+        colore= self._view._ddcolor.value
+        anno = self._view._ddyear.value
+        self._model.creaGrafo(colore, anno)
 
-        if self._view._ddcolor.value is None:
-            self._view.create_alert("Inserire un colore")
-            return
+        self._view.txtOut.controls.append(ft.Text(f"Numero nodi={self._model.getNumNodi()} e numero archi={self._model.getNumArchi()}"))
+        arc, nodi = self._model.getArchiPM()
+        for i in range(len(arc)):
+            self._view.txtOut.controls.append(ft.Text(f"arco da {arc[i][0]} a {arc[i][1]}, peso = {arc[i][2]}"))
+        self._view.txtOut.controls.append(ft.Text(f"I nodi ripetuti sono: {nodi}"))
 
-        self._model.builGraph(self._view._ddcolor.value, self._view._ddyear.value)
-        nN, nE = self._model.getGraphSize()
-        product, ripetuti = self._model.getBestProduct()
-        self._view.txtOut.clean()
-        self._view.txtOut.controls.append(ft.Text(f"Numero di vertici: {nN}  Numero di archi: {nE}"))
-        for e in product:
-            self._view.txtOut.controls.append(ft.Text(f"Arco da {e[0].Product_number} a {e[1].Product_number}, peso={e[2]}"))
-
-        self._view.txtOut.controls.append(ft.Text(f"I nodi ripetuti sono {ripetuti}"))
-
-        prodotti = self._model.nodes
-        for n in prodotti:
-            self._view._ddnode.options.append(ft.dropdown.Option(n.Product_number))
-        self._view.btn_search.disabled = False
+        self._view.btn_search.disabled=False
+        for n in self._model.nodi:
+            self._view._ddnode.options.append(ft.dropdown.Option(n))
 
         self._view.update_page()
 
+
+
+
     def handle_search(self, e):
-        v0 = self._model.idMap[int(self._view._ddnode.value)]
-        bestPath = self._model.getBestPath(v0)
-        self._view.txtOut2.clean()
-        self._view.txtOut2.controls.append(ft.Text(f"Numero archi percorso più lungo: {len(bestPath)-1}"))
+        nodo = int(self._view._ddnode.value)
+
+        self._model.searchPath(nodo)
+        soluzione = len(self._model.bestSol)
+        self._view.txtOut2.controls.append(ft.Text(f"Numero archi percorso più lungo{soluzione}"))
         self._view.update_page()
